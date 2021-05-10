@@ -6,12 +6,16 @@ const {
   removeContact,
   updateContact,
   addContact,
+  updateStatusContact,
 } = require('../../model/contacts.js')
 const { HttpCode } = require('../../helpers/constants')
 const {
   validationCreatContact,
   validationUpdateContact,
+  validationUpdateStatusContact,
 } = require('./validation/validationContactsRouter')
+
+const handleError = require('../../helpers/handle-error')
 
 router.get('/', async (req, res, next) => {
   try {
@@ -51,8 +55,10 @@ router.get('/:contactId', async (req, res, next) => {
   }
 })
 
-router.post('/', validationCreatContact, async (req, res, next) => {
-  try {
+router.post(
+  '/',
+  validationCreatContact,
+  handleError(async (req, res, next) => {
     const contact = await addContact(req.body)
     return res.status(201).json({
       status: 'success',
@@ -61,10 +67,8 @@ router.post('/', validationCreatContact, async (req, res, next) => {
         contact,
       },
     })
-  } catch (error) {
-    next(error)
-  }
-})
+  })
+)
 
 router.delete('/:contactId', async (req, res, next) => {
   try {
@@ -111,5 +115,32 @@ router.put('/:contactId', validationUpdateContact, async (req, res, next) => {
     next(error)
   }
 })
+
+router.patch(
+  '/:contactId/favorite',
+  validationUpdateStatusContact,
+  async (req, res, next) => {
+    try {
+      const contact = await updateStatusContact(req.params.contactId, req.body)
+      if (contact) {
+        return res.json({
+          status: 'success',
+          code: HttpCode.OK,
+          data: {
+            contact,
+          },
+        })
+      } else {
+        return res.status(404).json({
+          status: 'error',
+          code: HttpCode.NOT_FOUND,
+          data: 'Not Found',
+        })
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
+)
 
 module.exports = router
