@@ -2,10 +2,16 @@ const mongoose = require('mongoose')
 const { Schema, model } = mongoose
 const bcrypt = require('bcryptjs')
 const gravatar = require('gravatar')
+const { v4: uuidv4 } = require('uuid')
 const SALT_FACTOR = 6
 
 const userSchema = new Schema(
   {
+    name: {
+      type: String,
+      minlength: 2,
+      default: 'Guest',
+    },
     password: {
       type: String,
       required: [true, 'Password is required'],
@@ -29,6 +35,15 @@ const userSchema = new Schema(
       default: function () {
         return gravatar.url(this.email, { s: '250' }, true)
       },
+    },
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verifyTokenEmail: {
+      type: String,
+      required: true,
+      default: uuidv4(),
     },
   },
   { versionKey: false, timestamps: true }
